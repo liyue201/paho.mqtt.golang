@@ -19,7 +19,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/eclipse/paho.mqtt.golang/packets"
+	"github.com/liyue201/paho.mqtt.golang/packets"
 )
 
 // route is a type which associates MQTT Topic strings with a
@@ -74,6 +74,7 @@ func (r *route) match(topic string) bool {
 type router struct {
 	sync.RWMutex
 	routes         *list.List
+	filterHandler  MessageFilerHandler
 	defaultHandler MessageHandler
 	messages       chan *packets.PublishPacket
 	stop           chan bool
@@ -116,6 +117,11 @@ func (r *router) deleteRoute(topic string) {
 	}
 }
 
+// setFilterHandler assigns a filter callback that will be called before starting matching the Route
+func (r *router) setFilterHandler(handler MessageFilerHandler) {
+	r.filterHandler = handler
+}
+
 // setDefaultHandler assigns a default callback that will be called if no matching Route
 // is found for an incoming Publish.
 func (r *router) setDefaultHandler(handler MessageHandler) {
@@ -131,6 +137,12 @@ func (r *router) matchAndDispatch(messages <-chan *packets.PublishPacket, order 
 		for {
 			select {
 			case message := <-messages:
+				if r.filterHandler != nil {
+					if r.filterHandler(client, messageFromPublish(message)) {
+						break
+					}
+				}
+
 				sent := false
 				r.RLock()
 				for e := r.routes.Front(); e != nil; e = e.Next() {

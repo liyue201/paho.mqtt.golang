@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/eclipse/paho.mqtt.golang/packets"
+	"github.com/liyue201/paho.mqtt.golang/packets"
 )
 
 type connStatus uint
@@ -105,6 +105,7 @@ func NewClient(o *ClientOptions) Client {
 	c.status = disconnected
 	c.messageIds = messageIds{index: make(map[uint16]Token)}
 	c.msgRouter, c.stopRouter = newRouter()
+	c.msgRouter.setFilterHandler(c.options.MsgFilterHandler)
 	c.msgRouter.setDefaultHandler(c.options.DefaultPublishHander)
 	if !c.options.AutoReconnect {
 		c.options.MessageChannelDepth = 0

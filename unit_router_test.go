@@ -17,7 +17,7 @@ package mqtt
 import (
 	"testing"
 
-	"github.com/eclipse/paho.mqtt.golang/packets"
+	"github.com/liyue201/paho.mqtt.golang/packets"
 )
 
 func Test_newRouter(t *testing.T) {

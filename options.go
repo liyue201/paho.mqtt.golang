@@ -20,6 +20,12 @@ import (
 	"time"
 )
 
+
+// MessageFilerHandler is a callback type which can be set to be
+// executed upon the arrival of messages published to topics
+// to which the client is subscribed.
+type MessageFilerHandler func(Client, Message) bool
+
 // MessageHandler is a callback type which can be set to be
 // executed upon the arrival of messages published to topics
 // to which the client is subscribed.
@@ -58,6 +64,7 @@ type ClientOptions struct {
 	MaxReconnectInterval    time.Duration
 	AutoReconnect           bool
 	Store                   Store
+	MsgFilterHandler        MessageFilerHandler
 	DefaultPublishHander    MessageHandler
 	OnConnect               OnConnectHandler
 	OnConnectionLost        ConnectionLostHandler
@@ -229,6 +236,13 @@ func (o *ClientOptions) SetBinaryWill(topic string, payload []byte, qos byte, re
 	o.WillPayload = payload
 	o.WillQos = qos
 	o.WillRetained = retained
+	return o
+}
+
+// SetPublishFilterHandler sets the MessageHandler that will be called before it will bee called
+// by other pulish massage handlers, the other handlers will not bee called forever if it returns true.
+func (o *ClientOptions) SetMessageFilterHandler(filterHandler MessageFilerHandler) *ClientOptions {
+	o.MsgFilterHandler = filterHandler
 	return o
 }
 
